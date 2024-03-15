@@ -1,0 +1,101 @@
+version: "3"
+
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - 80:80
+    container_name: nginx
+    extra_hosts:
+      - "localhost.laravel.com:host-gateway"
+    volumes:
+      - ./conf/nginx.conf:/etc/nginx/conf.d/nginx.conf
+      - ./laravel/:/var/www/html
+      - ./log/nginx/:/var/log/nginx/
+    networks:
+      - laravel
+
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: php
+    extra_hosts:
+      - "localhost.laravel.com:host-gateway"
+    volumes:
+      - ./laravel/:/var/www/html
+    networks:
+      - laravel
+
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "000000"
+      MYSQL_USER: "admin"
+      MYSQL_PASSWORD: "admin"
+      MYSQL_DATABASE: "laravel"
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    ports:
+      - 3306:3306
+    networks:
+      - laravel
+
+  redis:
+    restart: always
+    container_name: redis
+    image: redis:latest
+    ports:
+      - 6379:6379
+    volumes:
+      - ./data/redis:/data
+    networks:
+      - laravel
+
+  # phpmyadmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    # restart: always
+    environment:
+      # - PMA_ARBITRARY=1
+      - PMA_HOST=mysql
+      # - PMA_PORT=3306
+      # - PMA_USER=
+      # - PMA_PASSWORD=
+      # - PHP_UPLOAD_MAX_FILESIZE=100MB
+    ports:
+      - "8082:80"
+    links:
+      - mysql
+    networks:
+      - laravel
+
+  # rebbitmq:
+  #   image: rabbitmq:3-management-alpine
+  #   container_name: rebbitmq
+  #   ports:
+  #     - 15672:15672
+  #     - 5672:5672
+  #   volumes:
+  #     - ./data/rabbitmq:/var/lib/rabbitmq/
+  #     - ./log/rabbitmq/:/var/log/rabbitmq
+  #   networks:
+  #     - laravel
+
+  # mongo:
+  #   container_name: mongo
+  #   image: mongo:latest
+  #   environment:
+  #     - MONGO_INITDB_DATABASE=log
+  #     - MONGO_INITDB_ROOT_USERNAME=admin
+  #     - MONGO_INITDB_ROOT_PASSWORD=25222162
+  #   ports:
+  #     - 27017:27017
+  #   volumes:
+  #     - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo-js:ro
+  #     - ./data/mongo:/data/db
+
+networks:
+  laravel:
+    driver: bridge
