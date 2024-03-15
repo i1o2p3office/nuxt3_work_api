@@ -34,8 +34,11 @@ Laravel api 圖片連結建立
 php artisan storage:link
 ```
 
-Laravel passport 套件建立 key
+會員登入使用 Laravel passport 套件
 
 ```
+php artisan migrate
+php artisan passport:install
 php artisan passport:keys
+php artisan passport:client --password
 ```
