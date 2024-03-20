@@ -7,30 +7,39 @@ use App\Models\User;
 
 class UserRepository
 {
-    public function getMemberByEmail(string $email): object
-    {
-        return User::where('email', $email)->first();
-    }
+	public function getMemberByEmail(int $loginType, string $email): ?object
+	{
+		return User::where('email', $email)
+							->where('loginType', $loginType)
+							->first();
+	}
 
-    public function register(array $model): int
-    {
-        try {
-            DB::beginTransaction();
+	public function getMemberByThirdPartyId(int $loginType, string $thirdPartyId): ?object
+	{
+		return User::where('thirdPartyId', $thirdPartyId)
+							->where('loginType', $loginType)
+							->first();
+	}
 
-            $uid = User::insertGetId($model);
+	public function register(array $model): int
+	{
+		try {
+			DB::beginTransaction();
 
-            DB::commit();
-            return $uid;
-        } catch (Exception $e) {
-            DB::rollBack();
-            return false;
-        }
-    }
+			$uid = User::insertGetId($model);
 
-    public function getLoginClient(): object
-    {
-        return DB::table('oauth_clients')
-                ->where('name', 'login')
-                ->first();
-    }
+			DB::commit();
+			return $uid;
+		} catch (Exception $e) {
+			DB::rollBack();
+			return false;
+		}
+	}
+
+	public function getLoginClient(): ?object
+	{
+		return DB::table('oauth_clients')
+						->where('name', 'login')
+						->first();
+	}
 }
